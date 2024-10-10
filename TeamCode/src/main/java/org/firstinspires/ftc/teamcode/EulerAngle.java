@@ -29,6 +29,6 @@ public class EulerAngle
 
     public String toString()
     {
-        return "PRY: " + pitch + " - " + yaw + " - " + roll;
+        return "PYR:" + pitch + " :: " + yaw + " :: " + roll;
     }
 }
