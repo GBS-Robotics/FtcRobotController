@@ -208,8 +208,8 @@ public class ConceptAprilTagTest extends LinearOpMode {
 
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
                 telemetry.addLine(String.format("Field Position: %s", detection.metadata.fieldPosition.toString()));
-                telemetry.addLine(String.format("Field Orientation: %s", detection.metadata.fieldOrientation.toString()));
-                telemetry.addLine(String.format("Field Orientation: %s", angles.toString()));
+//                telemetry.addLine(String.format("Field Orientation: %s", detection.metadata.fieldOrientation.toString()));
+                telemetry.addLine(String.format("Euler Angles: %s", angles.toString()));
                 telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
                 telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));

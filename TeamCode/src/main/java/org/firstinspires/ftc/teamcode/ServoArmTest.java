@@ -21,6 +21,7 @@ public class ServoArmTest extends LinearOpMode {
 
         CRServo armHandLeft = hardwareMap.get(CRServo.class, "arm_hand_left");
         CRServo armHandRight = hardwareMap.get(CRServo.class, "arm_hand_right");
+        CRServo armBase = hardwareMap.get(CRServo.class, "arm_base");
 
         waitForStart();
 
@@ -46,6 +47,5 @@ public class ServoArmTest extends LinearOpMode {
         telemetry.addData(">", "Done");
         telemetry.update();
     }
-
 
 }
