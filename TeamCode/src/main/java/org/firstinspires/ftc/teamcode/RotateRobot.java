@@ -15,17 +15,17 @@ public class RotateRobot
         angle = yaw;
         relativeField = relativePosition;
 
+        rotationMatrix.put(0,0,(float) Math.cos(angle));
+        rotationMatrix.put(1,0,(float) Math.sin(angle));
+        rotationMatrix.put(2,0, (float) 0);
+
+        rotationMatrix.put(0,1,(float) -Math.sin(angle));
         rotationMatrix.put(1,1,(float) Math.cos(angle));
-        rotationMatrix.put(2,1,(float) Math.sin(angle));
-        rotationMatrix.put(3,1,(float) 0);
+        rotationMatrix.put(2,1,(float) 0);
 
-        rotationMatrix.put(1,2,(float) -Math.sin(angle));
-        rotationMatrix.put(2,2,(float) Math.cos(angle));
-        rotationMatrix.put(3,2,(float) 0);
-
-        rotationMatrix.put(1,3,(float) 0);
-        rotationMatrix.put(2,3,(float) 0);
-        rotationMatrix.put(3,3,(float) 1);
+        rotationMatrix.put(0,2,(float) 0);
+        rotationMatrix.put(1,2,(float) 0);
+        rotationMatrix.put(2,2,(float) 1);
     }
 
     public void updateInfo(float yaw, VectorF relativePosition)
@@ -33,17 +33,17 @@ public class RotateRobot
         angle = yaw;
         relativeField = relativePosition;
 
+        rotationMatrix.put(0,0,(float) Math.cos(angle));
+        rotationMatrix.put(1,0,(float) Math.sin(angle));
+        rotationMatrix.put(2,0, (float) 0);
+
+        rotationMatrix.put(0,1,(float) -Math.sin(angle));
         rotationMatrix.put(1,1,(float) Math.cos(angle));
-        rotationMatrix.put(2,1,(float) Math.sin(angle));
-        rotationMatrix.put(3,1,(float) 0);
+        rotationMatrix.put(2,1,(float) 0);
 
-        rotationMatrix.put(1,2,(float) -Math.sin(angle));
-        rotationMatrix.put(2,2,(float) Math.cos(angle));
-        rotationMatrix.put(3,2,(float) 0);
-
-        rotationMatrix.put(1,3,(float) 0);
-        rotationMatrix.put(2,3,(float) 0);
-        rotationMatrix.put(3,3,(float) 1);
+        rotationMatrix.put(0,2,(float) 0);
+        rotationMatrix.put(1,2,(float) 0);
+        rotationMatrix.put(2,2,(float) 1);
     }
 
     public VectorF getRelativeField()

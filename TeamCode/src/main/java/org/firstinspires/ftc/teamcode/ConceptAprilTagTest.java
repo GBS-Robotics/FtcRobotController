@@ -218,9 +218,9 @@ public class ConceptAprilTagTest extends LinearOpMode {
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
                 telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
 
-                aprilTagDistance.put(1,(float) detection.ftcPose.x);
-                aprilTagDistance.put(2,(float) detection.ftcPose.y);
-                aprilTagDistance.put(3,(float) detection.ftcPose.z);
+                aprilTagDistance.put(0,(float) detection.ftcPose.x);
+                aprilTagDistance.put(1,(float) detection.ftcPose.y);
+                aprilTagDistance.put(2,(float) detection.ftcPose.z);
 
                 relativeField.updateInfo(angles.yaw,aprilTagDistance);
 
