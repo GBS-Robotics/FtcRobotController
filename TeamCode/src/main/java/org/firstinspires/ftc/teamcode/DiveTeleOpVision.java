@@ -1,37 +1,11 @@
-/* Copyright (c) 2023 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -44,32 +18,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-/*
- * This OpMode illustrates the basics of AprilTag recognition and pose estimation,
- * including Java Builder structures for specifying Vision parameters.
- *
- * For an introduction to AprilTags, see the FTC-DOCS link below:
- * https://ftc-docs.firstinspires.org/en/latest/apriltag/vision_portal/apriltag_intro/apriltag-intro.html
- *
- * In this sample, any visible tag ID will be detected and displayed, but only tags that are included in the default
- * "TagLibrary" will have their position and orientation information displayed.  This default TagLibrary contains
- * the current Season's AprilTags and a small set of "test Tags" in the high number range.
- *
- * When an AprilTag in the TagLibrary is detected, the SDK provides location and orientation of the tag, relative to the camera.
- * This information is provided in the "ftcPose" member of the returned "detection", and is explained in the ftc-docs page linked below.
- * https://ftc-docs.firstinspires.org/apriltag-detection-values
- *
- * To experiment with using AprilTags to navigate, try out these two driving samples:
- * RobotAutoDriveToAprilTagOmni and RobotAutoDriveToAprilTagTank
- *
- * There are many "default" VisionPortal and AprilTag configuration parameters that may be overridden if desired.
- * These default parameters are shown as comments in the code below.
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
- */
-@TeleOp(name = "Concept: AprilTag Test", group = "Practice")
-public class ConceptAprilTagTest extends LinearOpMode {
+@TeleOp(name="DiveTeleOp")
+public class DiveTeleOpVision extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
@@ -89,41 +39,120 @@ public class ConceptAprilTagTest extends LinearOpMode {
     EulerAngle angles = new EulerAngle(q);
     RotateRobot relativeField = new RotateRobot(0, aprilTagDistance);
 
+    // Declare OpMode members for each of the 4 motors, arm, and servos.
+    private final ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftFrontDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightFrontDrive = null;
+    private DcMotor rightBackDrive = null;
+    private DcMotor armBase = null;
+    private Servo armHandLeft = null;
+    private Servo armHandRight = null;
+
     @Override
     public void runOpMode() {
 
-        initAprilTag();
+        // Base motors
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        // Arm servos and motors
+        armHandLeft = hardwareMap.get(Servo.class, "arm_hand_left");
+        armHandRight = hardwareMap.get(Servo.class, "arm_hand_right");
+        armBase = hardwareMap.get(DcMotor.class, "arm_base");
 
-        // Wait for the DS start button to be touched.
-        telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
-        telemetry.addData(">", "Touch START to start OpMode");
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        armBase.setDirection(DcMotor.Direction.FORWARD);
+
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armBase.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        double max;
+
+        double axial;
+        double lateral;
+        double yaw;
+        double armSpeed;
+
+        double leftFrontPower;
+        double rightFrontPower;
+        double leftBackPower;
+        double rightBackPower;
+
+        double arm_left = 0;
+        double arm_right = 0;
+
+        telemetry.addData("Status", "Initialized");
         telemetry.update();
+
         waitForStart();
+        runtime.reset();
 
-        if (opModeIsActive()) {
-            while (opModeIsActive()) {
+        while (opModeIsActive()) {
+            axial   = -gamepad1.left_stick_y;
+            lateral =  gamepad1.left_stick_x;
+            yaw     =  gamepad1.right_stick_x;
+            armSpeed = gamepad2.right_stick_y;
 
-                telemetryAprilTag();
+            leftFrontPower  = axial + lateral + yaw;
+            rightFrontPower = axial - lateral - yaw;
+            leftBackPower   = axial - lateral + yaw;
+            rightBackPower  = axial + lateral - yaw;
 
-                // Push telemetry to the Driver Station.
-                telemetry.update();
+            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+            max = Math.max(max, Math.abs(leftBackPower));
+            max = Math.max(max, Math.abs(rightBackPower));
 
-                // Save CPU resources; can resume streaming when needed.
-                if (gamepad1.dpad_down) {
-                    visionPortal.stopStreaming();
-                } else if (gamepad1.dpad_up) {
-                    visionPortal.resumeStreaming();
-                }
-
-                // Share the CPU.
-                sleep(20);
+            if (max > 1.0) {
+                leftFrontPower  /= max;
+                rightFrontPower /= max;
+                leftBackPower   /= max;
+                rightBackPower  /= max;
+                armSpeed /= max;
             }
+
+            if (gamepad2.right_bumper) {
+                arm_left = 1;
+                arm_right = 0;
+            }
+
+            if (gamepad2.left_bumper) {
+                arm_left = 0;
+                arm_right = 1;
+            }
+
+            if (gamepad2.right_trigger > 0.1) {
+                armBase.setPower(gamepad2.right_trigger);
+            }
+
+            if (gamepad2.left_trigger > 0.1) {
+                armBase.setPower(-0.5 * gamepad2.left_trigger);
+            }
+
+            // Send calculated power to wheels
+            leftFrontDrive.setPower(leftFrontPower);
+            rightFrontDrive.setPower(rightFrontPower);
+            leftBackDrive.setPower(leftBackPower);
+            rightBackDrive.setPower(rightBackPower);
+
+            armHandLeft.setPosition(arm_left);
+            armHandRight.setPosition(arm_right);
+
+            telemetry.addData("Status", "Run Time: " + runtime);
+            telemetry.addData("Front left/right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
+            telemetry.addData("Back left/right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("Hand left/right", "%4.2f, %4.2f", arm_left, arm_right);
+            telemetry.addData("Servo", "%4.2f", armSpeed);
+            telemetry.update();
         }
-
-        // Save more CPU resources when camera is no longer needed.
-        visionPortal.close();
-
-    }   // end method runOpMode()
+    }
 
     /**
      * Initialize the AprilTag processor.
@@ -240,5 +269,4 @@ public class ConceptAprilTagTest extends LinearOpMode {
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
     }   // end method telemetryAprilTag()
-
-}   // end class
+}

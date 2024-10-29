@@ -10,31 +10,52 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @TeleOp(name="DiveTeleOp")
 public class DiveTeleOp extends LinearOpMode {
 
-    // Declare OpMode members for each of the 4 motors.
+    // Declare OpMode members for each of the 4 motors, arm, and servos.
     private final ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftFrontDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightFrontDrive = null;
+    private DcMotor rightBackDrive = null;
+    private DcMotor armBase = null;
+    private Servo armHandLeft = null;
+    private Servo armHandRight = null;
 
     @Override
     public void runOpMode() {
 
         // Base motors
-        DcMotor leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
-        DcMotor leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        DcMotor rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        DcMotor rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         // Arm servos and motors
-        Servo armHandLeft = hardwareMap.get(Servo.class, "arm_hand_left");
-        Servo armHandRight = hardwareMap.get(Servo.class, "arm_hand_right");
-        DcMotor armBase = hardwareMap.get(DcMotor.class, "arm_base");
+        armHandLeft = hardwareMap.get(Servo.class, "arm_hand_left");
+        armHandRight = hardwareMap.get(Servo.class, "arm_hand_right");
+        armBase = hardwareMap.get(DcMotor.class, "arm_base");
 
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        armBase.setDirection(DcMotor.Direction.FORWARD);
+
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armBase.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        double max;
 
         double axial;
         double lateral;
         double yaw;
         double armSpeed;
+
+        double leftFrontPower;
+        double rightFrontPower;
+        double leftBackPower;
+        double rightBackPower;
 
         double arm_left = 0;
         double arm_right = 0;
@@ -46,17 +67,15 @@ public class DiveTeleOp extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
-            double max;
-
             axial   = -gamepad1.left_stick_y;
             lateral =  gamepad1.left_stick_x;
             yaw     =  gamepad1.right_stick_x;
             armSpeed = gamepad2.right_stick_y;
 
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            leftFrontPower  = axial + lateral + yaw;
+            rightFrontPower = axial - lateral - yaw;
+            leftBackPower   = axial - lateral + yaw;
+            rightBackPower  = axial + lateral - yaw;
 
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
@@ -85,7 +104,7 @@ public class DiveTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.left_trigger > 0.1) {
-                armBase.setPower(-gamepad2.left_trigger);
+                armBase.setPower(-0.5 * gamepad2.left_trigger);
             }
 
             // Send calculated power to wheels
