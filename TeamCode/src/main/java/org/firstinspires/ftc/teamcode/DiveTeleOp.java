@@ -57,7 +57,7 @@ public class DiveTeleOp extends LinearOpMode {
         double leftBackPower;
         double rightBackPower;
 
-        double arm_left = 0;
+        double arm_left = 1;
         double arm_right = 0;
 
         telemetry.addData("Status", "Initialized");
@@ -72,10 +72,10 @@ public class DiveTeleOp extends LinearOpMode {
             yaw     =  gamepad1.right_stick_x;
             armSpeed = gamepad2.right_stick_y;
 
-            leftFrontPower  = axial + lateral + yaw;
-            rightFrontPower = axial - lateral - yaw;
-            leftBackPower   = axial - lateral + yaw;
-            rightBackPower  = axial + lateral - yaw;
+            leftFrontPower  = axial + yaw + lateral;
+            rightFrontPower = axial - yaw - lateral;
+            leftBackPower   = axial - yaw + lateral;
+            rightBackPower  = axial + yaw - lateral;
 
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
@@ -95,8 +95,8 @@ public class DiveTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper) {
-                arm_left = 0;
-                arm_right = 1;
+                arm_left = 0.5;
+                arm_right = 0.5;
             }
 
             if (gamepad2.right_trigger > 0.1) {

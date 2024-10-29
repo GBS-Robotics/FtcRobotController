@@ -6,7 +6,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import android.util.Size;
 
+import org.apache.commons.math3.transform.DctNormalization;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -18,7 +20,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@TeleOp(name="DiveTeleOp")
+@TeleOp(name="DiveTeleOpVision")
 public class DiveTeleOpVision extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -48,6 +50,7 @@ public class DiveTeleOpVision extends LinearOpMode {
     private DcMotor armBase = null;
     private Servo armHandLeft = null;
     private Servo armHandRight = null;
+    private DcMotor slide = null;
 
     @Override
     public void runOpMode() {
@@ -61,33 +64,39 @@ public class DiveTeleOpVision extends LinearOpMode {
         armHandLeft = hardwareMap.get(Servo.class, "arm_hand_left");
         armHandRight = hardwareMap.get(Servo.class, "arm_hand_right");
         armBase = hardwareMap.get(DcMotor.class, "arm_base");
+        slide = hardwareMap.get(DcMotor.class, "slide");
 
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
         armBase.setDirection(DcMotor.Direction.FORWARD);
+        slide.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armBase.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         double max;
 
         double axial;
         double lateral;
         double yaw;
-        double armSpeed;
 
         double leftFrontPower;
         double rightFrontPower;
         double leftBackPower;
         double rightBackPower;
+        double slideSpeed;
+        double armSpeed;
 
-        double arm_left = 0;
+        double arm_left = 1;
         double arm_right = 0;
+
+        initAprilTag();
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -99,12 +108,13 @@ public class DiveTeleOpVision extends LinearOpMode {
             axial   = -gamepad1.left_stick_y;
             lateral =  gamepad1.left_stick_x;
             yaw     =  gamepad1.right_stick_x;
-            armSpeed = gamepad2.right_stick_y;
+            armSpeed = 0.5 * gamepad2.right_stick_y;
+            slideSpeed = -gamepad2.left_stick_y;
 
-            leftFrontPower  = axial + lateral + yaw;
-            rightFrontPower = axial - lateral - yaw;
-            leftBackPower   = axial - lateral + yaw;
-            rightBackPower  = axial + lateral - yaw;
+            leftFrontPower  = axial + yaw + lateral;
+            rightFrontPower = axial - yaw - lateral;
+            leftBackPower   = axial - yaw + lateral;
+            rightBackPower  = axial + yaw - lateral;
 
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
@@ -124,10 +134,11 @@ public class DiveTeleOpVision extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper) {
-                arm_left = 0;
-                arm_right = 1;
+                arm_left = 0.65;
+                arm_right = 0.45;
             }
 
+            /*
             if (gamepad2.right_trigger > 0.1) {
                 armBase.setPower(gamepad2.right_trigger);
             }
@@ -135,12 +146,15 @@ public class DiveTeleOpVision extends LinearOpMode {
             if (gamepad2.left_trigger > 0.1) {
                 armBase.setPower(-0.5 * gamepad2.left_trigger);
             }
+             */
 
             // Send calculated power to wheels
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
             rightBackDrive.setPower(rightBackPower);
+            armBase.setPower(armSpeed);
+            slide.setPower(slideSpeed);
 
             armHandLeft.setPosition(arm_left);
             armHandRight.setPosition(arm_right);
@@ -149,9 +163,13 @@ public class DiveTeleOpVision extends LinearOpMode {
             telemetry.addData("Front left/right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back left/right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Hand left/right", "%4.2f, %4.2f", arm_left, arm_right);
-            telemetry.addData("Servo", "%4.2f", armSpeed);
+            telemetry.addData("Arm Speed", "%4.2f", armSpeed);
+            telemetry.addData("Slide Speed", "%4.2f", slideSpeed);
+            telemetryAprilTag();
             telemetry.update();
         }
+
+        visionPortal.close();
     }
 
     /**
@@ -200,7 +218,7 @@ public class DiveTeleOpVision extends LinearOpMode {
         }
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        //builder.setCameraResolution(new Size(640, 480));
+        builder.setCameraResolution(new Size(640, 480));
 
         // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
         //builder.enableLiveView(true);
