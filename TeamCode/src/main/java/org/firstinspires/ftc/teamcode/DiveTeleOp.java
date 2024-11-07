@@ -95,8 +95,8 @@ public class DiveTeleOp extends LinearOpMode {
             }
 
             if (gamepad2.left_bumper) {
-                arm_left = 0.5;
-                arm_right = 0.5;
+                arm_left = 0.43;
+                arm_right = 0.38;
             }
 
             if (gamepad2.right_trigger > 0.1) {

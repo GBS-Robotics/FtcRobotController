@@ -1,14 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.annotation.SuppressLint;
+import android.util.Size;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import android.util.Size;
 
-import org.apache.commons.math3.transform.DctNormalization;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -20,7 +22,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@TeleOp(name="DiveTeleOpVision")
+@TeleOp(name = "DiveTeleOpVision")
 public class DiveTeleOpVision extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -35,8 +37,7 @@ public class DiveTeleOpVision extends LinearOpMode {
      */
     private VisionPortal visionPortal;
 
-    private VectorF aprilTagDistance = new VectorF(0.0f, 0.0f, 0.0f);
-    private VectorF robotPose = new VectorF(0.0f, 0.0f, 0.0f);
+    private final VectorF aprilTagDistance = new VectorF(0.0f, 0.0f, 0.0f);
     Quaternion q = new Quaternion();
     EulerAngle angles = new EulerAngle(q);
     RotateRobot relativeField = new RotateRobot(0, aprilTagDistance);
@@ -47,7 +48,7 @@ public class DiveTeleOpVision extends LinearOpMode {
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
     private DcMotor rightBackDrive = null;
-    private DcMotor armBase = null;
+    private DcMotorEx armBase = null;
     private Servo armHandLeft = null;
     private Servo armHandRight = null;
     private DcMotor slide = null;
@@ -56,21 +57,21 @@ public class DiveTeleOpVision extends LinearOpMode {
     public void runOpMode() {
 
         // Base motors
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
+        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
+        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         // Arm servos and motors
         armHandLeft = hardwareMap.get(Servo.class, "arm_hand_left");
         armHandRight = hardwareMap.get(Servo.class, "arm_hand_right");
-        armBase = hardwareMap.get(DcMotor.class, "arm_base");
+        armBase = hardwareMap.get(DcMotorEx.class, "arm_base");
         slide = hardwareMap.get(DcMotor.class, "slide");
 
         leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        armBase.setDirection(DcMotor.Direction.FORWARD);
+        armBase.setDirection(DcMotor.Direction.REVERSE);
         slide.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -86,6 +87,12 @@ public class DiveTeleOpVision extends LinearOpMode {
         double lateral;
         double yaw;
 
+        // control constants
+        final double ARM_BASE_SENSITIVITY = 0.025;
+        final double DRIVE_BASE_SENSITIVITY = 1;
+        final double DPAD_SENSITIVITY = 0.25;
+        final double CLAW_SENSITIVITY = 0.05;
+
         double leftFrontPower;
         double rightFrontPower;
         double leftBackPower;
@@ -93,8 +100,10 @@ public class DiveTeleOpVision extends LinearOpMode {
         double slideSpeed;
         double armSpeed;
 
-        double arm_left = 1;
-        double arm_right = 0;
+        boolean isControllingArm;
+
+        double claw_left = 0;
+        double claw_right = 0;
 
         initAprilTag();
 
@@ -105,50 +114,100 @@ public class DiveTeleOpVision extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
-            axial   = -gamepad1.left_stick_y;
-            lateral =  gamepad1.left_stick_x;
-            yaw     =  gamepad1.right_stick_x;
-            armSpeed = 0.5 * gamepad2.right_stick_y;
-            slideSpeed = -gamepad2.left_stick_y;
+            //Driving controls
+            axial = -gamepad1.left_stick_y * DRIVE_BASE_SENSITIVITY;
+            lateral = gamepad1.left_stick_x * DRIVE_BASE_SENSITIVITY;
+            yaw = gamepad1.right_stick_x * DRIVE_BASE_SENSITIVITY;
 
-            leftFrontPower  = axial + yaw + lateral;
-            rightFrontPower = axial - yaw - lateral;
-            leftBackPower   = axial - yaw + lateral;
-            rightBackPower  = axial + yaw - lateral;
+            //Linear slide control
+            slideSpeed = gamepad2.left_stick_y;
 
+            //Claw open and close controls
+            claw_left += CLAW_SENSITIVITY * (gamepad2.left_trigger - gamepad2.right_trigger);
+            claw_right += CLAW_SENSITIVITY * (-gamepad2.left_trigger + gamepad2.right_trigger);
+
+            //Sets that we're not controlling the arm
+            isControllingArm = false;
+
+            //Move arm down
+            if (gamepad2.right_stick_y <= 0 || gamepad2.a) {
+                armSpeed = gamepad2.right_stick_y;
+                isControllingArm = true;
+            }
+            //Move arm up
+            else {
+                armSpeed = ARM_BASE_SENSITIVITY * gamepad2.right_stick_y;
+                isControllingArm = true;
+            }
+
+            if (!isControllingArm) {
+                armSpeed = 10 ^ -5;
+            }
+
+            //Open claw
+            if (gamepad2.right_bumper) { //opens claws
+                claw_left = 0;
+                claw_right = 1;
+            }
+
+            //Close claw
+            if (gamepad2.left_bumper) { //closes claw
+                claw_left = 0.5;
+                claw_right = 0.4;
+            }
+
+            //Keeps claw in bounds
+            claw_right = servoBounds.clamp((float) claw_right, 0, 0.4f);
+            claw_left = servoBounds.clamp((float) claw_left, 0, 0.5f);
+
+            //Slow backwards
+            if (gamepad1.dpad_down) {
+                axial = -DPAD_SENSITIVITY;
+                lateral = 0;
+                yaw = 0;
+            }
+
+            //Slow forwards
+            if (gamepad1.dpad_up) {
+                axial = DPAD_SENSITIVITY;
+                lateral = 0;
+                yaw = 0;
+            }
+
+            //Slow left
+            if (gamepad1.dpad_left) {
+                axial = 0;
+                lateral = -DPAD_SENSITIVITY;
+                yaw = 0;
+            }
+
+            //Slow right
+            if (gamepad1.dpad_right) {
+                axial = 0;
+                lateral = DPAD_SENSITIVITY;
+                yaw = 0;
+            }
+
+            //Assign the power variables.
+            leftFrontPower = axial + lateral + yaw;
+            rightFrontPower = axial - lateral - yaw;
+            leftBackPower = axial - lateral + yaw;
+            rightBackPower = axial + lateral - yaw;
+
+            //Make sure power never goes above 1
             max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
             max = Math.max(max, Math.abs(leftBackPower));
             max = Math.max(max, Math.abs(rightBackPower));
 
             if (max > 1.0) {
-                leftFrontPower  /= max;
+                leftFrontPower /= max;
                 rightFrontPower /= max;
-                leftBackPower   /= max;
-                rightBackPower  /= max;
+                leftBackPower /= max;
+                rightBackPower /= max;
                 armSpeed /= max;
             }
 
-            if (gamepad2.right_bumper) {
-                arm_left = 1;
-                arm_right = 0;
-            }
-
-            if (gamepad2.left_bumper) {
-                arm_left = 0.65;
-                arm_right = 0.45;
-            }
-
-            /*
-            if (gamepad2.right_trigger > 0.1) {
-                armBase.setPower(gamepad2.right_trigger);
-            }
-
-            if (gamepad2.left_trigger > 0.1) {
-                armBase.setPower(-0.5 * gamepad2.left_trigger);
-            }
-             */
-
-            // Send calculated power to wheels
+            // Send calculated power to motors
             leftFrontDrive.setPower(leftFrontPower);
             rightFrontDrive.setPower(rightFrontPower);
             leftBackDrive.setPower(leftBackPower);
@@ -156,13 +215,15 @@ public class DiveTeleOpVision extends LinearOpMode {
             armBase.setPower(armSpeed);
             slide.setPower(slideSpeed);
 
-            armHandLeft.setPosition(arm_left);
-            armHandRight.setPosition(arm_right);
+            //Send position to servos
+            armHandLeft.setPosition(claw_left);
+            armHandRight.setPosition(claw_right);
 
+            //Send telemetry
             telemetry.addData("Status", "Run Time: " + runtime);
             telemetry.addData("Front left/right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back left/right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Hand left/right", "%4.2f, %4.2f", arm_left, arm_right);
+            telemetry.addData("Hand left/right", "%4.2f, %4.2f", claw_left, claw_right);
             telemetry.addData("Arm Speed", "%4.2f", armSpeed);
             telemetry.addData("Slide Speed", "%4.2f", slideSpeed);
             telemetryAprilTag();
@@ -195,7 +256,6 @@ public class DiveTeleOpVision extends LinearOpMode {
                 // ... these parameters are fx, fy, cx, cy.
 
                 .build();
-
 
 
         // Adjust Image Decimation to trade-off detection-range for detection-rate.
@@ -246,6 +306,7 @@ public class DiveTeleOpVision extends LinearOpMode {
     /**
      * Add telemetry about AprilTag detections.
      */
+    @SuppressLint("DefaultLocale")
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -265,20 +326,19 @@ public class DiveTeleOpVision extends LinearOpMode {
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
                 telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
 
-                aprilTagDistance.put(0,(float) detection.ftcPose.x);
-                aprilTagDistance.put(1,(float) detection.ftcPose.y);
-                aprilTagDistance.put(2,(float) detection.ftcPose.z);
+                aprilTagDistance.put(0, (float) detection.ftcPose.x);
+                aprilTagDistance.put(1, (float) detection.ftcPose.y);
+                aprilTagDistance.put(2, (float) detection.ftcPose.z);
 
-                relativeField.updateInfo(angles.yaw,aprilTagDistance);
+                relativeField.updateInfo(angles.yaw, aprilTagDistance);
 
-                robotPose = detection.metadata.fieldPosition.subtracted(relativeField.getRelativeField());
+                VectorF robotPose = detection.metadata.fieldPosition.subtracted(relativeField.getRelativeField());
                 telemetry.addLine(String.format("Robot Position: %s", robotPose.toString()));
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
             }
         }   // end for() loop
-
 
 
         // Add "key" information to telemetry

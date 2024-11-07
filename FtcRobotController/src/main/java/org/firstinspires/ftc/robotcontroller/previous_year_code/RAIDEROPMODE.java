@@ -149,10 +149,10 @@ public class RAIDEROPMODE extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            double leftFrontPower  = axial + yaw + lateral;
+            double rightFrontPower = axial - yaw - lateral;
+            double leftBackPower   = axial - yaw + lateral;
+            double rightBackPower  = axial + yaw - lateral;
             double armMotorPower = 0.70 * armPitch;
             double hangMotorPower = positiveHangMotorPower - negativeHangMotorPower;
             wristMotorPower += 0.001 * wristPitch;
