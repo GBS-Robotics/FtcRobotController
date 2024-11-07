@@ -89,9 +89,10 @@ public class DiveTeleOpVision extends LinearOpMode {
 
         // control constants
         final double ARM_BASE_SENSITIVITY = 0.025;
+        final double FALLING_SENSITIVITY = 0.1;
         final double DRIVE_BASE_SENSITIVITY = 1;
         final double DPAD_SENSITIVITY = 0.25;
-        final double CLAW_SENSITIVITY = 0.05;
+        final double CLAW_SENSITIVITY = 0.01;
 
         double leftFrontPower;
         double rightFrontPower;
@@ -140,9 +141,19 @@ public class DiveTeleOpVision extends LinearOpMode {
                 isControllingArm = true;
             }
 
+            /*
             if (!isControllingArm) {
-                armSpeed = 10 ^ -5;
+                armSpeed = .005;
             }
+             */
+
+
+            if(!isControllingArm) {
+                armSpeed = -FALLING_SENSITIVITY * armBase.getVelocity();
+            }
+
+
+            armSpeed = -armBase.getVelocity();
 
             //Open claw
             if (gamepad2.right_bumper) { //opens claws
@@ -157,7 +168,7 @@ public class DiveTeleOpVision extends LinearOpMode {
             }
 
             //Keeps claw in bounds
-            claw_right = servoBounds.clamp((float) claw_right, 0, 0.4f);
+            claw_right = servoBounds.clamp((float) claw_right, 0.4f, 1);
             claw_left = servoBounds.clamp((float) claw_left, 0, 0.5f);
 
             //Slow backwards
@@ -224,7 +235,9 @@ public class DiveTeleOpVision extends LinearOpMode {
             telemetry.addData("Front left/right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back left/right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Hand left/right", "%4.2f, %4.2f", claw_left, claw_right);
-            telemetry.addData("Arm Speed", "%4.2f", armSpeed);
+            telemetry.addData("Arm Power", "%4.2f", armSpeed);
+            telemetry.addData("Arm Speed", "%4.2f", armBase.getVelocity());
+            telemetry.addData("Controlling Arm", isControllingArm);
             telemetry.addData("Slide Speed", "%4.2f", slideSpeed);
             telemetryAprilTag();
             telemetry.update();
