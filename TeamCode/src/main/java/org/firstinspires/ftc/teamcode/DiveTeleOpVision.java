@@ -89,7 +89,7 @@ public class DiveTeleOpVision extends LinearOpMode {
 
         // control constants
         final double ARM_BASE_SENSITIVITY = 0.025;
-        final double FALLING_SENSITIVITY = 0.1;
+        final double FALLING_SENSITIVITY = 0.001;
         final double DRIVE_BASE_SENSITIVITY = 1;
         final double DPAD_SENSITIVITY = 0.25;
         final double CLAW_SENSITIVITY = 0.01;
@@ -130,13 +130,15 @@ public class DiveTeleOpVision extends LinearOpMode {
             //Sets that we're not controlling the arm
             isControllingArm = false;
 
-            //Move arm down
-            if (gamepad2.right_stick_y <= 0 || gamepad2.a) {
+            //Move arm full speed
+            //Always on up
+            //Hold A to go down
+            if (gamepad2.right_stick_y < 0 || gamepad2.a) {
                 armSpeed = gamepad2.right_stick_y;
                 isControllingArm = true;
             }
-            //Move arm up
-            else {
+            //Move arm down at partial speed
+            else if (gamepad2.right_stick_y > 0){
                 armSpeed = ARM_BASE_SENSITIVITY * gamepad2.right_stick_y;
                 isControllingArm = true;
             }
@@ -147,8 +149,8 @@ public class DiveTeleOpVision extends LinearOpMode {
             }
              */
 
-
-            if(!isControllingArm) {
+            //Stops the arm from falling
+            if(!isControllingArm && armBase.getVelocity() < 0) {
                 armSpeed = -FALLING_SENSITIVITY * armBase.getVelocity();
             }
 
