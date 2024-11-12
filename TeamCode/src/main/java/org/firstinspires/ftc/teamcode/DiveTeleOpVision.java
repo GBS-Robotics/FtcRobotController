@@ -71,7 +71,7 @@ public class DiveTeleOpVision extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        armBase.setDirection(DcMotor.Direction.REVERSE);
+        armBase.setDirection(DcMotor.Direction.FORWARD);
         slide.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -87,13 +87,6 @@ public class DiveTeleOpVision extends LinearOpMode {
         double lateral;
         double yaw;
 
-        // control constants
-        final double ARM_BASE_SENSITIVITY = 0.025;
-        final double FALLING_SENSITIVITY = 0.001;
-        final double DRIVE_BASE_SENSITIVITY = 1;
-        final double DPAD_SENSITIVITY = 0.25;
-        final double CLAW_SENSITIVITY = 0.01;
-
         double leftFrontPower;
         double rightFrontPower;
         double leftBackPower;
@@ -106,6 +99,14 @@ public class DiveTeleOpVision extends LinearOpMode {
         double claw_left = 0;
         double claw_right = 0;
 
+        // control constants
+        final double ARM_DOWN_SENSITIVITY = 0.02;
+        final double ARM_UP_SENSITIVITY = 1.0;
+        final double FALLING_SENSITIVITY = 0.0001;
+        final double DRIVE_BASE_SENSITIVITY = 1;
+        final double DPAD_SENSITIVITY = 0.25;
+        final double CLAW_SENSITIVITY = 0.01;
+
         initAprilTag();
 
         telemetry.addData("Status", "Initialized");
@@ -115,6 +116,7 @@ public class DiveTeleOpVision extends LinearOpMode {
         runtime.reset();
 
         while (opModeIsActive()) {
+            armSpeed = 0.0;
             //Driving controls
             axial = -gamepad1.left_stick_y * DRIVE_BASE_SENSITIVITY;
             lateral = gamepad1.left_stick_x * DRIVE_BASE_SENSITIVITY;
@@ -131,31 +133,33 @@ public class DiveTeleOpVision extends LinearOpMode {
             isControllingArm = false;
 
             //Move arm full speed
-            //Always on up
-            //Hold A to go down
-            if (gamepad2.right_stick_y < 0 || gamepad2.a) {
+            if (gamepad2.x) {
                 armSpeed = gamepad2.right_stick_y;
                 isControllingArm = true;
             }
-            //Move arm down at partial speed
+            else if (gamepad2.right_stick_y < 0) {
+                //Move arm up at partial speed
+                armSpeed = ARM_UP_SENSITIVITY * gamepad2.right_stick_y;
+                isControllingArm = true;
+            }
             else if (gamepad2.right_stick_y > 0){
-                armSpeed = ARM_BASE_SENSITIVITY * gamepad2.right_stick_y;
+                //Move arm down at partial speed
+                armSpeed = ARM_DOWN_SENSITIVITY * gamepad2.right_stick_y;
                 isControllingArm = true;
             }
 
+            if (gamepad2.y) {
+                 armSpeed = 0.001;
+            }
+
+            //Stops the arm from falling
             /*
-            if (!isControllingArm) {
-                armSpeed = .005;
+            if(!isControllingArm) {
+                //armSpeed = -FALLING_SENSITIVITY * armBase.getVelocity();
+                armSpeed = 0.00001;
             }
              */
 
-            //Stops the arm from falling
-            if(!isControllingArm && armBase.getVelocity() < 0) {
-                armSpeed = -FALLING_SENSITIVITY * armBase.getVelocity();
-            }
-
-
-            armSpeed = -armBase.getVelocity();
 
             //Open claw
             if (gamepad2.right_bumper) { //opens claws
@@ -217,7 +221,7 @@ public class DiveTeleOpVision extends LinearOpMode {
                 rightFrontPower /= max;
                 leftBackPower /= max;
                 rightBackPower /= max;
-                armSpeed /= max;
+//                armSpeed /= max;
             }
 
             // Send calculated power to motors
@@ -237,6 +241,7 @@ public class DiveTeleOpVision extends LinearOpMode {
             telemetry.addData("Front left/right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back left/right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Hand left/right", "%4.2f, %4.2f", claw_left, claw_right);
+            telemetry.addData("Right Stick", "%4.2f", gamepad2.right_stick_y);
             telemetry.addData("Arm Power", "%4.2f", armSpeed);
             telemetry.addData("Arm Speed", "%4.2f", armBase.getVelocity());
             telemetry.addData("Controlling Arm", isControllingArm);
