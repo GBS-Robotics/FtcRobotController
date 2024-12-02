@@ -6,7 +6,11 @@ public class CustomMathFunctions {
         return degrees / 1.25f;
     }
 
-    public static float clamp(float val, float min, float max) {
+    public static float motorTicksToDegrees(float ticks) {
+        return ticks * 1.25f;
+    }
+
+    public static float bounds(float val, float min, float max) {
         return Math.max(min, Math.min(max, val));
     }
 }

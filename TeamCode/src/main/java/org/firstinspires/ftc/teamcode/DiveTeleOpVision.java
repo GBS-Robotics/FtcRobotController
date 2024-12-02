@@ -71,7 +71,7 @@ public class DiveTeleOpVision extends LinearOpMode {
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        armBase.setDirection(DcMotor.Direction.FORWARD);
+        armBase.setDirection(DcMotor.Direction.REVERSE);
         slide.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -152,15 +152,6 @@ public class DiveTeleOpVision extends LinearOpMode {
                  armSpeed = 0.001;
             }
 
-            //Stops the arm from falling
-            /*
-            if(!isControllingArm) {
-                //armSpeed = -FALLING_SENSITIVITY * armBase.getVelocity();
-                armSpeed = 0.00001;
-            }
-             */
-
-
             //Open claw
             if (gamepad2.right_bumper) { //opens claws
                 claw_left = 0;
@@ -174,8 +165,8 @@ public class DiveTeleOpVision extends LinearOpMode {
             }
 
             //Keeps claw in bounds
-            claw_right = CustomMathFunctions.clamp((float) claw_right, 0.4f, 1);
-            claw_left = CustomMathFunctions.clamp((float) claw_left, 0, 0.5f);
+            claw_right = CustomMathFunctions.bounds((float) claw_right, 0.4f, 1);
+            claw_left = CustomMathFunctions.bounds((float) claw_left, 0, 0.5f);
 
             //Slow backwards
             if (gamepad1.dpad_down) {
@@ -263,16 +254,16 @@ public class DiveTeleOpVision extends LinearOpMode {
 
                 // The following default settings are available to un-comment and edit as needed.
                 //.setDrawAxes(false)
-                .setDrawCubeProjection(true)
+                //.setDrawCubeProjection(true)
                 //.setDrawTagOutline(true)
                 //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(AprilTagGameDatabase.getIntoTheDeepTagLibrary())
+                //.setTagLibrary(AprilTagGameDatabase.getIntoTheDeepTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
 
                 // == CAMERA CALIBRATION ==
                 // If you do not manually specify calibration parameters, the SDK will attempt
                 // to load a predefined calibration for your camera.
-                .setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
+                //.setLensIntrinsics(578.272, 578.272, 402.145, 221.506)
                 // ... these parameters are fx, fy, cx, cy.
 
                 .build();
@@ -298,7 +289,7 @@ public class DiveTeleOpVision extends LinearOpMode {
         }
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        builder.setCameraResolution(new Size(640, 480));
+        //builder.setCameraResolution(new Size(640, 480));
 
         // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
         //builder.enableLiveView(true);
