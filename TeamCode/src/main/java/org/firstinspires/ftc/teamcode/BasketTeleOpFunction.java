@@ -7,7 +7,10 @@ public class BasketTeleOpFunction {
      * @param heightCentimeters The height of the basket in centimeters
      *
      */
-    public static void getAttachmentSteps(double heightCentimeters) {
+    public static void getPositionOfMotor(double heightCentimeters) {
+        double maximumHeight = 69;
+        double position = heightCentimeters / maximumHeight;
 
+//        return position;
     }
 }

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import android.annotation.SuppressLint;
+import android.os.Build;
 import android.util.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -114,7 +115,7 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
         double k_i = 0;
         double k_d = 0;
 
-        double claw_left = 0;
+        double claw_left = 1;
         double claw_right = 0;
 
         final double ARM_DOWN_SENSITIVITY = 0.02;
@@ -199,7 +200,7 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
             k_d = CustomMathFunctions.bounds((float) k_d, 0, 1);
 
             //moves arm
-            armPosition += -ARM_POSITION_SENSITIVITY * gamepad2.right_stick_y;
+            armPosition = gamepad2.right_stick_y;
 
             //PID for arm
             current_time = runtime;
@@ -240,19 +241,15 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
 
             //Open claw
             if (gamepad2.right_bumper) { //opens claws
-                claw_left = 0;
-                claw_right = 1;
+                claw_left = 1;
+                claw_right = 0;
             }
 
             //Close claw
             if (gamepad2.left_bumper) { //closes claw
                 claw_left = 0.5;
-                claw_right = 0.4;
+                claw_right = 0.55;
             }
-
-            //Keeps claw in bounds
-            claw_right = CustomMathFunctions.bounds((float) claw_right, 0.4f, 1);
-            claw_left = CustomMathFunctions.bounds((float) claw_left, 0, 0.5f);
 
             //Slow backwards
             if (gamepad1.dpad_down) {
@@ -382,7 +379,9 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
         }
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        builder.setCameraResolution(new Size(640, 480));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            builder.setCameraResolution(new Size(640, 480));
+        }
 
         // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
         //builder.enableLiveView(true);
