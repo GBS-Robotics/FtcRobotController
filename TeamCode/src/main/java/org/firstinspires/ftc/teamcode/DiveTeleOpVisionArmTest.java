@@ -247,8 +247,8 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
 
             //Close claw
             if (gamepad2.left_bumper) { //closes claw
-                claw_left = 0.5;
-                claw_right = 0.55;
+                claw_left = 0.42;
+                claw_right = 0.5;
             }
 
             //Slow backwards
@@ -315,6 +315,7 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
             telemetry.addData("Front left/right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back left/right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
             telemetry.addData("Hand left/right", "%4.2f, %4.2f", claw_left, claw_right);
+            telemetry.addData("Actual Arm Power", "%4.2f", armPosition);
             telemetry.addData("Kp - Kd", "%4.2f, %4.2f", k_p, k_d);
             telemetry.addData("Error", current_error);
             telemetry.addData("Right Stick", "%4.2f", gamepad2.right_stick_y);

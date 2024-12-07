@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode;
 
 public class BasketTeleOpFunction {
+    private double ARM_LENGTH = 23;
+    //private double
     /**
+     * @param heightCentimeters The height of the basket in centimeters
      * @name getAttachmentSteps
      * @description Returns motor instructions to raise the robot arm to the desired basket height.
-     * @param heightCentimeters The height of the basket in centimeters
-     *
      */
-    public static void getPositionOfMotor(double heightCentimeters) {
+    public static double getPositionOfMotor(double heightCentimeters) {
         double maximumHeight = 69;
-        double position = heightCentimeters / maximumHeight;
 
-//        return position;
+        return heightCentimeters / maximumHeight;
     }
+
+    //public static (double, double) getSlideBasePositions(double )
 }

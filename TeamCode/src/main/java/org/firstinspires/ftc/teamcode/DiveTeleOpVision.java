@@ -154,14 +154,14 @@ public class DiveTeleOpVision extends LinearOpMode {
 
             //Open claw
             if (gamepad2.right_bumper) { //opens claws
-                claw_left = 0;
-                claw_right = 1;
+                claw_left = 1;
+                claw_right = 0;
             }
 
             //Close claw
             if (gamepad2.left_bumper) { //closes claw
-                claw_left = 0.5;
-                claw_right = 0.4;
+                claw_left = 0.42;
+                claw_right = 0.5;
             }
 
             //Keeps claw in bounds
