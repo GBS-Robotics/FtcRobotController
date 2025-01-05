@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Calculators;
 
 import static java.lang.Math.atan2;
 import static java.lang.Math.sqrt;
