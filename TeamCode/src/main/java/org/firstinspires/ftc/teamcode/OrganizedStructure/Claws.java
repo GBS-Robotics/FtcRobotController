@@ -49,6 +49,7 @@ public class Claws {
         leftClaw.setPosition(leftPosition);
         rightClaw.setPosition(rightPosition);
 
-        telemetry.addData("Claw left/right", "%4.2f, %4.2f", leftPosition, rightPosition);
+        telemetry.addData("Claw Position left/right", "%4.2f, %4.2f", leftPosition, rightPosition);
+        telemetry.addData("Claw Actual left/right", "%4.2f, %4.2f", leftClaw.getPosition(), rightClaw.getPosition());
     }
 }

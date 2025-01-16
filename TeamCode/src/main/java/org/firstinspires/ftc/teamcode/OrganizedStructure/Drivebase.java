@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.OrganizedStructure;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Calculators.CustomMathFunctions;
@@ -37,7 +38,7 @@ public class Drivebase {
         rightBackDrive = hardwareMap.get(DcMotor.class, rightBack);
 
         //Sets motor directions
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
