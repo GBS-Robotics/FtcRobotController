@@ -29,7 +29,7 @@ public class FarAuto extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
 
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
@@ -51,11 +51,11 @@ public class FarAuto extends LinearOpMode {
         if (opModeIsActive())
         {
             setMotors(0, 0, 0);
-            pause(20000);
+            pause(20000/3);
             setMotors(0.5, 0, 0);
-            pause(500);
+            pause(500/3);
             setMotors(0, 1, 0);
-            pause(4250);
+            pause(4250/3);
         }
     }
 

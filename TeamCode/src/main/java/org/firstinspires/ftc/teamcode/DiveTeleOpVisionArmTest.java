@@ -27,7 +27,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@TeleOp(name = "DiveTeleOp (The one we've been using)")
+@TeleOp(name = "DiveTeleOp (Use this one)")
 public class DiveTeleOpVisionArmTest extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -137,7 +137,8 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
         final double ARM_DOWN_SENSITIVITY = 0.02;
         final double ARM_UP_SENSITIVITY = 1.0;
         final double FALLING_SENSITIVITY = 0.0001;
-        final double DRIVE_BASE_SENSITIVITY = 1;
+        final double DRIVE_BASE_SENSITIVITY = 0.7;
+        final double ABXY_SENSITIVITY = 1;
         final double DPAD_SENSITIVITY = 0.25;
         final double CLAW_SENSITIVITY = 0.01;
         final double ARM_VELOCITY_SENSITIVITY = 0.5;
@@ -154,8 +155,8 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
         while (opModeIsActive()) {
             //armPosition = 0.0;
             //Driving controls
-            axial = -gamepad1.left_stick_y * DRIVE_BASE_SENSITIVITY;
-            lateral = gamepad1.left_stick_x * DRIVE_BASE_SENSITIVITY;
+            axial = gamepad1.left_stick_y * DRIVE_BASE_SENSITIVITY;
+            lateral = -gamepad1.left_stick_x * DRIVE_BASE_SENSITIVITY;
             yaw = gamepad1.right_stick_x * DRIVE_BASE_SENSITIVITY;
 
             //Linear slide control
@@ -173,8 +174,8 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
             claw_left += CLAW_SENSITIVITY * (-gamepad2.left_trigger + gamepad2.right_trigger);
             claw_right += CLAW_SENSITIVITY * (gamepad2.left_trigger - gamepad2.right_trigger);
 
-            claw_left = CustomMathFunctions.bounds((float) claw_left, 0.42f, 1);
-            claw_right = CustomMathFunctions.bounds((float) claw_right, 0, 0.5f);
+            claw_left = CustomMathFunctions.bounds((float) claw_left, 0, 1);
+            claw_right = CustomMathFunctions.bounds((float) claw_right, 0, 1);
 
             //Sets that we're not controlling the arm
             isControllingArm = false;
@@ -212,20 +213,20 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
 
             //Close claw
             if (gamepad2.left_bumper) { //closes claw
-                claw_left = 0.42;
-                claw_right = 0.5;
+                claw_left = 0;
+                claw_right = 1;
             }
 
             //Slow backwards
             if (gamepad1.dpad_down) {
-                axial = -DPAD_SENSITIVITY;
+                axial = DPAD_SENSITIVITY;
                 lateral = 0;
                 yaw = 0;
             }
 
             //Slow forwards
             if (gamepad1.dpad_up) {
-                axial = DPAD_SENSITIVITY;
+                axial = -DPAD_SENSITIVITY;
                 lateral = 0;
                 yaw = 0;
             }
@@ -233,14 +234,42 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
             //Slow left
             if (gamepad1.dpad_left) {
                 axial = 0;
-                lateral = -DPAD_SENSITIVITY;
+                lateral = DPAD_SENSITIVITY;
                 yaw = 0;
             }
 
             //Slow right
             if (gamepad1.dpad_right) {
                 axial = 0;
-                lateral = DPAD_SENSITIVITY;
+                lateral = -DPAD_SENSITIVITY;
+                yaw = 0;
+            }
+
+            //Fast backwards
+            if (gamepad1.a) {
+                axial = ABXY_SENSITIVITY;
+                lateral = 0;
+                yaw = 0;
+            }
+
+            //Fast forwards
+            if (gamepad1.y) {
+                axial = -ABXY_SENSITIVITY;
+                lateral = 0;
+                yaw = 0;
+            }
+
+            //Fast left
+            if (gamepad1.x) {
+                axial = 0;
+                lateral = ABXY_SENSITIVITY;
+                yaw = 0;
+            }
+
+            //Fast right
+            if (gamepad1.b) {
+                axial = 0;
+                lateral = -ABXY_SENSITIVITY;
                 yaw = 0;
             }
 

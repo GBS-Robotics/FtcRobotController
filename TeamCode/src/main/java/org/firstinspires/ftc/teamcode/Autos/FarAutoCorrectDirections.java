@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous
-public class CloseAuto extends LinearOpMode {
+public class FarAutoCorrectDirections extends LinearOpMode {
 
     private final ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftFrontDrive = null;
@@ -51,20 +51,20 @@ public class CloseAuto extends LinearOpMode {
         if (opModeIsActive())
         {
             setMotors(0, 0, 0);
-            pause(1000/3);
+            pause(20000/3);
             setMotors(0.5, 0, 0);
             pause(500/3);
             setMotors(0, 1, 0);
-            pause(3000/3);
+            pause(4250/3);
         }
     }
 
     private void setMotors(double axial, double lateral, double yaw)
     {
-        leftFrontPower  = axial + lateral + yaw;
-        rightFrontPower = axial - lateral - yaw;
-        leftBackPower   = axial - lateral + yaw;
-        rightBackPower  = axial + lateral - yaw;
+        leftFrontPower  = -axial - lateral + yaw;
+        rightFrontPower = -axial + lateral - yaw;
+        leftBackPower   = -axial + lateral + yaw;
+        rightBackPower  = -axial - lateral - yaw;
 
         max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
         max = Math.max(max, Math.abs(leftBackPower));

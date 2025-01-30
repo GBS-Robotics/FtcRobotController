@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp (name = "DiveTeleOp (the new one)")
+@TeleOp (name = "DiveTeleOp (don't use)")
 public class DiveTeleOpCompact extends LinearOpMode {
     //creates timer for match
     private final ElapsedTime runtime = new ElapsedTime();
