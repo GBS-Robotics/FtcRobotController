@@ -245,6 +245,20 @@ public class DiveTeleOpVisionArmTest extends LinearOpMode {
                 yaw = 0;
             }
 
+            //Slow turn left
+            if (gamepad1.left_bumper) {
+                axial = 0;
+                lateral = 0;
+                yaw = -DPAD_SENSITIVITY;
+            }
+
+            //Slow turn right
+            if (gamepad1.right_bumper) {
+                axial = 0;
+                lateral = 0;
+                yaw = DPAD_SENSITIVITY;
+            }
+
             //Fast backwards
             if (gamepad1.a) {
                 axial = ABXY_SENSITIVITY;

@@ -51,11 +51,13 @@ public class CloseAutoCorrectDirections extends LinearOpMode {
         if (opModeIsActive())
         {
             setMotors(0, 0, 0);
-            pause(1000/3);
+            pause(1000);
             setMotors(0.5, 0, 0);
-            pause(500/3);
+            pause(167);
+            setMotors(0, 0, 0);
+            pause(200);
             setMotors(0, 1, 0);
-            pause(3000/3);
+            pause(1330);
         }
     }
 
